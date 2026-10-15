@@ -1,5 +1,5 @@
 /* Púlpito — service worker */
-const VERSAO = "pulpito-v3";
+const VERSAO = "pulpito-v4";
 const BASE = new URL("./", self.location).pathname;
 const ESSENCIAIS = [
   BASE, BASE + "index.html", BASE + "manifest.json", BASE + "biblia.json",
@@ -37,7 +37,8 @@ self.addEventListener("fetch", e => {
 
   // mesmo domínio + fontes do Google: cache primeiro, revalidando em segundo plano
   if (url.origin === self.location.origin ||
-      url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com") {
+      url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com" ||
+      url.hostname === "cdn.jsdelivr.net") {
     e.respondWith(
       caches.match(req).then(cached => {
         const rede = fetch(req).then(r => {
