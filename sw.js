@@ -1,5 +1,5 @@
 /* Púlpito — service worker */
-const VERSAO = "pulpito-v1";
+const VERSAO = "pulpito-v2";
 const BASE = new URL("./", self.location).pathname;
 const ESSENCIAIS = [
   BASE, BASE + "index.html", BASE + "manifest.json", BASE + "biblia.json",

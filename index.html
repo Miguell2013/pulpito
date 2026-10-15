@@ -265,6 +265,9 @@ textarea.ff{min-height:60px;line-height:1.45}
   <button class="btn" style="margin-top:12px" onclick="doImport()">Importar para o app</button>
   <p class="small faint center" style="margin-top:10px">Dica: o agente também pode te mandar um link que já importa com um toque.</p></div></div></div>
 
+<div class="ov" id="ovIA"><div class="sheet"><div class="sh"><div class="sht">✨ Florescer uma ideia</div><button class="xbtn" onclick="closeIA()"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="sb" id="iaBody"></div></div></div>
+
 <div class="preach" id="preach">
   <div class="palert" id="pAlert"></div>
   <div class="pbar">
@@ -316,6 +319,7 @@ const SVG_PLUS='<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';
 const SVG_IMPORT='<svg viewBox="0 0 24 24"><path d="M12 3v12M8 11l4 4 4-4"/><path d="M5 21h14"/></svg>';
 const SVG_PLAY='<svg viewBox="0 0 24 24"><path d="M7 4l12 8-12 8z" fill="currentColor" stroke="none"/></svg>';
 const SVG_PAUSE='<svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>';
+const IA_URL="https://uldssazirjhkbptankcq.supabase.co/functions/v1/florescer";
 
 /* nav */
 let tab="mensagens", editingId=null, pickTopicId=null;
@@ -345,8 +349,9 @@ function renderLista(){
   if(!all.length){
     main.innerHTML=`<div class="wrap"><div class="empty"><div class="eic"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 016.5 3H20v15H6.5A2.5 2.5 0 004 20.5z"/><path d="M4 5.5V20"/></svg></div>
       <h2>Comece sua primeira mensagem</h2><p class="muted" style="max-width:34ch;margin:0 auto 20px">Estruture o sermão em tópicos, vincule os versículos e tenha tudo pronto para o púlpito.</p>
-      <button class="btn" style="max-width:260px;margin:0 auto" onclick="novaMensagem()">+ Nova mensagem</button>
-      <button class="btn ghost sm" style="margin:12px auto 0;display:block" onclick="openImport()">⇩ Importar esboço do agente</button></div></div>`;return;
+      <button class="btn" style="max-width:280px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:8px" onclick="openIA()">✨ Florescer uma ideia (IA)</button>
+      <button class="btn ghost" style="max-width:280px;margin:12px auto 0" onclick="novaMensagem()">+ Nova mensagem (em branco)</button>
+      <button class="btn ghost sm" style="margin:10px auto 0;display:block" onclick="openImport()">⇩ Importar esboço do agente</button></div></div>`;return;
   }
   // filtro
   let list=all.slice();
@@ -362,6 +367,7 @@ function renderLista(){
     <button class="chip ${listFilter==='todas'?'on':''}" onclick="setFilter('todas')">Todas</button>
     <button class="chip ${listFilter==='favoritas'?'on':''}" onclick="setFilter('favoritas')">Favoritas</button>
     <button class="chip ${listFilter==='recentes'?'on':''}" onclick="setFilter('recentes')">Recentes</button></div>`;
+  h+=`<button class="btn" style="margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:9px" onclick="openIA()">✨ Florescer uma ideia (IA)</button>`;
   // pastas
   h+='<div class="sec">Pastas</div><div class="folders">';
   h+=`<div class="folder ${!listFolder?'on':''}" onclick="setFolder(null)"><div class="fi"><svg viewBox="0 0 24 24"><path d="M4 7h16v12H4z"/><path d="M4 7l2-3h5l2 3"/></svg></div><div class="fn">Todas</div><div class="fc">${all.length} itens</div></div>`;
@@ -646,6 +652,35 @@ function checkHashImport(){try{const h=location.hash||"";const m=h.match(/[#&](?
  st.addEventListener("pointerdown",e=>{if(!pStarted||e.pointerType!=="mouse")return;mx=e.clientX;md=true;});
  st.addEventListener("pointerup",e=>{if(!md||!pStarted)return;md=false;const dx=e.clientX-mx;if(Math.abs(dx)>80)pGo(dx<0?1:-1);});
 }})();
+
+/* ============ FLORESCER UMA IDEIA (IA) ============ */
+let iaTempoSel=35;
+function openIA(){$("ovIA").classList.add("on");renderIABody();loadBible();}
+function closeIA(){$("ovIA").classList.remove("on");}
+function renderIABody(prev){prev=prev||{};
+  $("iaBody").innerHTML=`
+    <p class="small muted" style="margin:0 0 14px">A IA organiza um <b style="color:var(--ink)">ponto de partida</b> — cada tópico já com versículo e frase-chave. A mensagem continua sua, pra desenvolver em oração. 🤍</p>
+    <div class="fg"><label class="fl">Tema da mensagem</label><input class="ff" id="iaTema" placeholder="Ex.: a fé na espera · o perdão · gratidão" value="${esc(prev.tema||"")}"></div>
+    <div class="fg"><label class="fl">Rascunho (opcional)</label><textarea class="ff" id="iaRasc" style="min-height:90px" placeholder="Já tem anotações ou ideias soltas? Cole aqui que a IA organiza.">${esc(prev.rascunho||"")}</textarea></div>
+    <label class="fl">Tempo de mensagem</label><div class="timechips" id="iaTempo">${[20,30,40,50,60,90].map(t=>`<button class="${iaTempoSel===t?'on':''}" onclick="iaTempoSel=${t};document.querySelectorAll('#iaTempo button').forEach(x=>x.classList.toggle('on',x.textContent.trim()==='${t} min'))">${t} min</button>`).join("")}</div>
+    <button class="btn" style="margin-top:16px" onclick="florescer()">✨ Gerar esboço</button>
+    <p class="small faint center" style="margin-top:10px">Usa os créditos de API do seu Max — alguns centavos por esboço.</p>`;
+}
+function florescer(){
+  const tema=($("iaTema").value||"").trim(), rascunho=($("iaRasc").value||"").trim();
+  if(!tema&&!rascunho){toast("Diga um tema ou cole um rascunho");return;}
+  $("iaBody").innerHTML='<div class="loading"><div class="spin"></div>Florescendo o seu esboço…<div class="small faint" style="margin-top:8px">pode levar alguns segundos</div></div>';
+  loadBible(()=>{
+    fetch(IA_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({tema,rascunho,tempoMin:iaTempoSel})})
+      .then(r=>r.json().then(d=>({ok:r.ok,d})).catch(()=>({ok:false,d:null})))
+      .then(({ok,d})=>{
+        if(!ok||!d||!d.esboco){renderIABody({tema,rascunho});toast((d&&d.error)?d.error:"Não consegui gerar agora");return;}
+        const n=importObj(d.esboco);
+        if(n){closeIA();}else{renderIABody({tema,rascunho});}
+      })
+      .catch(()=>{renderIABody({tema,rascunho});toast("Sem conexão com a IA. Tente de novo.");});
+  });
+}
 
 /* start */
 render();
