@@ -40,7 +40,7 @@ button,input,textarea,select{font-family:inherit;color:inherit}
 .pill-btn{display:flex;align-items:center;gap:7px;height:40px;padding:0 15px;border-radius:12px;border:1px solid var(--gold-deep);background:linear-gradient(180deg,var(--gold2),var(--gold));color:#201a08;font-weight:700;font-size:.88rem;cursor:pointer}
 .pill-btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .pill-btn.outline{background:var(--panel);color:var(--ink);border-color:var(--line2)}
-.main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px 30px}
+.main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:16px 16px 30px}
 .wrap{max-width:var(--content);margin:0 auto}
 .nav{display:flex;border-top:1px solid var(--line);background:linear-gradient(0deg,var(--bg2),var(--bg));padding-bottom:var(--safe-bot)}
 .nav button{flex:1;background:none;border:0;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink-faint);cursor:pointer;font-size:.63rem;font-weight:600;letter-spacing:.02em}
@@ -78,7 +78,7 @@ button,input,textarea,select{font-family:inherit;color:inherit}
 .folder.add svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.7}
 /* grid de mensagens */
 .msglist{display:grid;gap:11px;grid-template-columns:1fr}
-.msg{display:flex;align-items:flex-start;gap:13px;background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:15px;cursor:pointer;text-align:left;box-shadow:var(--shadow);width:100%}
+.msg{display:flex;align-items:flex-start;gap:13px;background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:15px;cursor:pointer;text-align:left;box-shadow:var(--shadow);width:100%;min-width:0;max-width:100%;overflow:hidden}
 .msg:active{border-color:var(--gold-deep)}
 .msg .mk{width:42px;height:42px;border-radius:11px;flex:0 0 auto;display:grid;place-items:center;background:var(--gold-soft);border:1px solid var(--gold-deep);color:var(--gold);font-family:var(--serif);font-weight:700;font-size:1.05rem}
 .msg .mg{flex:1;min-width:0;display:flex;flex-direction:column}
@@ -192,9 +192,10 @@ textarea.ff{min-height:60px;line-height:1.45}
 .pill.timer .pv{display:flex;align-items:center;gap:7px}
 .pill.timer .pv svg{width:14px;height:14px;fill:currentColor;stroke:none}
 .pstage{flex:1;overflow-y:auto;padding:22px 20px 16px}
-.pstage .pin{max-width:var(--content);margin:0 auto;animation:stepIn .32s cubic-bezier(.22,.61,.36,1)}
-@keyframes stepIn{from{opacity:0;transform:translateX(var(--sx,18px))}to{opacity:1;transform:translateX(0)}}
-@media (prefers-reduced-motion:reduce){.pstage .pin{animation:none}}
+.pstage .pin{max-width:var(--content);margin:0 auto;animation:stepIn .42s cubic-bezier(.16,.84,.44,1)}
+@keyframes stepIn{from{opacity:0;transform:translateX(var(--sx,30px))}to{opacity:1;transform:translateX(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.pstage .pin{animation:fadeIn .3s ease}}
 .ptopnum{font-size:.64rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
 .pnext{font-size:.76rem;color:var(--ink-faint);margin-bottom:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pnext b{color:var(--ink-soft);font-weight:600}
@@ -391,7 +392,7 @@ function renderLista(){
     h+='</div>';}
   h+='</div>';
   main.innerHTML=h;
-  $("fab").style.display="grid";
+  $("fab").style.display="none";
   const lq=$("lq");lq.addEventListener("input",()=>{listQuery=lq.value;const pos=lq.selectionStart;renderLista();const n=$("lq");if(n){n.focus();try{n.setSelectionRange(pos,pos);}catch(e){}}});
 }
 function setFilter(f){listFilter=f;renderLista();}
@@ -578,7 +579,7 @@ function drawStep(){const t=pMsg.topicos[pIdx],n=pMsg.topicos.length,nxt=pMsg.to
   if(t.citacao&&t.citacao.texto){h+=`<div class="pquote">“${esc(t.citacao.texto)}”</div>`;if(t.citacao.autor)h+=`<div class="pquote-a">— ${esc(t.citacao.autor)}</div>`;else h+='<div style="height:12px"></div>';}
   if(t.nota)h+=`<div class="pnote">${esc(t.nota).replace(/\n/g,"<br>")}</div>`;
   h+='</div>';
-  const st=$("pStage");st.style.setProperty("--sx",(pDir<0?-18:18)+"px");st.innerHTML=h;st.scrollTop=0;
+  const st=$("pStage");st.style.setProperty("--sx",(pDir<0?-30:30)+"px");st.innerHTML=h;st.scrollTop=0;
   updateVerBar(t);
   $("pPrev").disabled=pIdx===0;$("pNext").disabled=false;
   $("pCount").innerHTML=`Tópico <b>${pIdx+1}</b> / ${n}`;
