@@ -790,7 +790,17 @@ async function cloudPull(thenRender){
     cloudPushAll(); // envia o que for local mais novo / ainda não está na nuvem
     cloudSetStatus("Sincronizado ✓");
     if(thenRender)render();
+    // preenche o texto do versículo (Almeida) em esboços que vierem só com a referência (ex.: enviados pelo agente)
+    const falta=db.mensagens.some(m=>(m.topicos||[]).some(t=>t&&t.versiculo&&t.versiculo.ref&&!t.versiculo.texto));
+    if(falta)loadBible(()=>{if(fillCloudVerses()){saveLocal();cloudPushAll();if(thenRender)render();}});
   }catch(e){cloudPulling=false;cloudSetStatus("Não consegui baixar agora");}
+}
+function fillCloudVerses(){
+  if(!BIBLE)return false;let ch=false;
+  db.mensagens.forEach(m=>{(m.topicos||[]).forEach(t=>{
+    if(t&&t.versiculo&&t.versiculo.ref&&!t.versiculo.texto){const r=resolveVers(t.versiculo);if(r&&r.texto){t.versiculo=r;ch=true;}}
+  });});
+  return ch;
 }
 /* UI */
 function cloudCardHTML(){
