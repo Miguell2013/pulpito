@@ -88,6 +88,11 @@ button,input,textarea,select{font-family:inherit;color:inherit}
 .msg .star{flex:0 0 auto;background:none;border:0;cursor:pointer;color:var(--ink-faint);padding:2px}
 .msg .star svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7}
 .msg .star.on{color:var(--gold)}.msg .star.on svg{fill:var(--gold)}
+.msg .kb{flex:0 0 auto;background:none;border:0;cursor:pointer;color:var(--ink-faint);padding:2px 0 2px 6px}
+.msg .kb svg{width:20px;height:20px;fill:currentColor}
+.menuitem{width:100%;display:flex;align-items:center;gap:13px;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px;color:var(--ink);font-size:1rem;font-weight:600;cursor:pointer;text-align:left;margin-bottom:11px}
+.menuitem svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.menuitem.danger{color:var(--red2);border-color:rgba(226,74,58,.32)}
 .empty{text-align:center;padding:40px 18px}
 .empty .eic{width:62px;height:62px;border-radius:50%;border:1px solid var(--gold-deep);background:var(--gold-soft);display:grid;place-items:center;margin:0 auto 14px;color:var(--gold)}
 .empty .eic svg{width:28px;height:28px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
@@ -271,6 +276,12 @@ textarea.ff{min-height:60px;line-height:1.45}
 <div class="ov" id="ovIA"><div class="sheet"><div class="sh"><div class="sht">✨ Florescer uma ideia</div><button class="xbtn" onclick="closeIA()"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div class="sb" id="iaBody"></div></div></div>
 
+<div class="ov" id="ovMenu" onclick="if(event.target===this)closeMenu()"><div class="sheet"><div class="sh"><div class="sht" id="ovMenuTitle">Mensagem</div><button class="xbtn" onclick="closeMenu()"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="sb">
+    <button class="menuitem" onclick="menuEditar()"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>Editar</button>
+    <button class="menuitem danger" onclick="menuExcluir()"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg>Excluir</button>
+  </div></div></div>
+
 <div class="preach" id="preach">
   <div class="palert" id="pAlert"></div>
   <div class="pbar">
@@ -388,6 +399,7 @@ function renderLista(){
         <span class="mk">${esc(ini)}</span>
         <span class="mg"><span class="mt">${esc(m.titulo||"Sem título")}</span>${m.tema?`<span class="md">${esc(m.tema)}</span>`:""}<span class="ms">${meta}</span></span>
         <button class="star ${m.favorito?'on':''}" onclick="event.stopPropagation();toggleFav('${m.id}')"><svg viewBox="0 0 24 24"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></button>
+        <button class="kb" onclick="event.stopPropagation();msgMenu('${m.id}')" title="Opções"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
       </div>`;});
     h+='</div>';}
   h+='</div>';
@@ -398,6 +410,11 @@ function renderLista(){
 function setFilter(f){listFilter=f;renderLista();}
 function setFolder(id){listFolder=id;renderLista();}
 function toggleFav(id){const m=db.mensagens.find(x=>x.id===id);if(m){m.favorito=!m.favorito;m.atualizado=Date.now();save();renderLista();}}
+let menuMsgId=null;
+function msgMenu(id){menuMsgId=id;const m=db.mensagens.find(x=>x.id===id);$("ovMenuTitle").textContent=(m&&(m.titulo||"").trim())?m.titulo:"Sem título";$("ovMenu").classList.add("on");}
+function closeMenu(){$("ovMenu").classList.remove("on");}
+function menuEditar(){const id=menuMsgId;closeMenu();if(id)abrirMensagem(id);}
+function menuExcluir(){const id=menuMsgId;const m=db.mensagens.find(x=>x.id===id);if(!m)return;if(!confirm("Apagar \""+((m.titulo||"").trim()||"Sem título")+"\"? Isso não pode ser desfeito."))return;db.mensagens=db.mensagens.filter(x=>x.id!==id);save();if(typeof cloudDelete==="function")cloudDelete("msg",id);closeMenu();renderLista();toast("Mensagem apagada");}
 function novaPasta(){const n=prompt("Nome da pasta:");if(n&&n.trim()){db.pastas.push({id:uid(),nome:n.trim()});save();renderLista();}}
 function novaMensagem(){const m={id:uid(),titulo:"",tema:"",pastaId:listFolder||null,tempoMin:db.prefs.tempoPadrao,favorito:false,topicos:[],criado:Date.now(),atualizado:Date.now()};db.mensagens.push(m);save();abrirMensagem(m.id);}
 function abrirMensagem(id){editingId=id;tab="editor";document.querySelectorAll("#nav button").forEach(b=>b.classList.remove("on"));render();main.scrollTop=0;}
