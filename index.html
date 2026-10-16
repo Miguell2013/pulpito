@@ -240,12 +240,23 @@ textarea.ff{min-height:60px;line-height:1.45}
 .loading{text-align:center;padding:40px;color:var(--ink-faint)}
 .spin{width:30px;height:30px;border:3px solid var(--line2);border-top-color:var(--gold);border-radius:50%;margin:0 auto 12px;animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
-/* TABLET */
+/* TABLET (retrato) */
 @media(min-width:720px){
   .msglist{grid-template-columns:1fr 1fr}
   .top h1{font-size:1.35rem}
   .main{padding:22px 26px 36px}
   :root{--ps-base:1.08}
+}
+/* TABLET horizontal / tela larga: preenche a tela toda */
+@media(min-width:1000px){
+  .app{max-width:none}
+  :root{--content:980px}
+  .main{padding:24px 40px 40px}
+  .msglist{grid-template-columns:1fr 1fr 1fr}
+}
+@media(min-width:1500px){
+  :root{--content:1200px}
+  .msglist{grid-template-columns:1fr 1fr 1fr 1fr}
 }
 </style>
 </head>
